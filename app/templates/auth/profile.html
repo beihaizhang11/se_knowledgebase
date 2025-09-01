@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料 - BDIC-SE Knowledge Base{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    margin-top: 80px;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.profile-name {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.profile-role {
+    font-size: 18px;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.profile-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title i {
+    font-size: 18px;
+    color: #667eea;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.info-value {
+    color: #333;
+    font-weight: 500;
+}
+
+.btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.course-list {
+    list-style: none;
+    padding: 0;
+}
+
+.course-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+    transition: background 0.3s ease;
+}
+
+.course-item:hover {
+    background: #e9ecef;
+}
+
+.course-info {
+    flex: 1;
+}
+
+.course-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.course-instructor {
+    color: #666;
+    font-size: 14px;
+}
+
+.course-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #d4edda;
+    color: #155724;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .profile-stats {
+        gap: 20px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .profile-header {
+        padding: 30px 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {{ user.first_name[0].upper() }}{{ user.last_name[0].upper() }}
+        </div>
+        <div class="profile-name">{{ user.get_full_name() }}</div>
+        <div class="profile-role">
+            {% if user.role == 'student' %}
+                🎓 学生
+            {% elif user.role == 'teacher' %}
+                👨‍🏫 教师
+            {% else %}
+                👑 管理员
+            {% endif %}
+        </div>
+        <div class="profile-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ user.get_reviews()|length }}</span>
+                <span class="stat-label">评价数量</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ (user.created_at.now() - user.created_at).days }}</span>
+                <span class="stat-label">加入天数</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ user.last_login.strftime('%m-%d') if user.last_login else '从未' }}</span>
+                <span class="stat-label">最后登录</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-content">
+        <div class="profile-card">
+            <h2 class="card-title">
+                <i class="fas fa-user"></i>
+                个人信息
+            </h2>
+            
+            <div class="info-item">
+                <span class="info-label">用户名</span>
+                <span class="info-value">{{ user.username }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">邮箱</span>
+                <span class="info-value">{{ user.email }}</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">姓名</span>
+                <span class="info-value">{{ user.get_full_name() }}</span>
+            </div>
+            
+            {% if user.student_id %}
+            <div class="info-item">
+                <span class="info-label">学号</span>
+                <span class="info-value">{{ user.student_id }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="info-item">
+                <span class="info-label">角色</span>
+                <span class="info-value">
+                    {% if user.role == 'student' %}学生
+                    {% elif user.role == 'teacher' %}教师
+                    {% else %}管理员
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">注册时间</span>
+                <span class="info-value">{{ user.created_at.strftime('%Y年%m月%d日') }}</span>
+            </div>
+            
+            <div class="btn-group">
+                <a href="#" class="btn btn-primary">编辑资料</a>
+                <a href="#" class="btn btn-outline">修改密码</a>
+            </div>
+        </div>
+        
+        <div class="profile-card">
+            <h2 class="card-title">
+                <i class="fas fa-star"></i>
+                我的评价
+            </h2>
+            
+            {% set user_reviews = user.get_reviews() %}
+            {% if user_reviews %}
+                <ul class="review-list">
+                    {% for review in user_reviews %}
+                    <li class="review-item">
+                        <div class="review-info">
+                            <div class="course-name">{{ review.course.title }}</div>
+                            <div class="review-rating">
+                                {% for i in range(1, 6) %}
+                                    {% if i <= review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                ({{ review.rating }}/5)
+                            </div>
+                            {% if review.comment %}
+                                <div class="review-comment">{{ review.comment[:100] }}{% if review.comment|length > 100 %}...{% endif %}</div>
+                            {% endif %}
+                        </div>
+                        <span class="review-date">{{ review.created_at.strftime('%Y-%m-%d') }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-star"></i>
+                    <p>您还没有发表任何评价</p>
+                    <a href="{{ url_for('courses_list') }}" class="btn btn-primary">浏览课程</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 添加课程卡片点击事件
+    const courseItems = document.querySelectorAll('.course-item');
+    courseItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // 这里可以添加导航到课程详情页的逻辑
+            console.log('点击课程:', this.querySelector('.course-name').textContent);
+        });
+    });
+    
+    // 添加统计数据动画
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        if (!isNaN(finalValue)) {
+            animateNumber(stat, finalValue);
+        }
+    });
+});
+
+function animateNumber(element, finalValue) {
+    const duration = 1500;
+    const increment = finalValue / (duration / 16);
+    let currentValue = 0;
+    
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+            element.textContent = finalValue;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(currentValue);
+        }
+    }, 16);
+}
+</script>
+{% endblock %}

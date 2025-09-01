@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}所有课程 - BDIC-SE 知识库{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Page Header -->
+    <div style="border-bottom: 3px solid var(--border-light); padding-bottom: 8px; margin-bottom: 20px;">
+        <h1 style="font-size: 2.1em; font-weight: normal; margin: 0; font-family: 'Linux Libertine', 'Georgia', 'Times', serif;">
+            所有课程
+        </h1>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 5px 0 0 0;">
+            BDIC软件工程专业课程完整列表
+        </p>
+    </div>
+
+    <!-- Search and Filter -->
+    <div style="background-color: var(--background-section); border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px;">
+        <div class="row">
+            <div class="col-md-8">
+                <input type="text" id="courseSearch" class="form-control" placeholder="搜索课程名称、讲师或关键词..." 
+                       style="font-size: 13px; border: 1px solid var(--border-color);">
+            </div>
+            <div class="col-md-4">
+                <select id="stageFilter" class="form-select" style="font-size: 13px; border: 1px solid var(--border-color);">
+                    <option value="">所有学期</option>
+                    <option value="S1">第一学期 (S1)</option>
+                    <option value="S2">第二学期 (S2)</option>
+                    <option value="S3">第三学期 (S3)</option>
+                    <option value="S4">第四学期 (S4)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Statistics -->
+    <div class="info-box">
+        <strong>统计信息：</strong>
+        目前共有 <span id="totalCoursesCount">-</span> 门课程，
+        来自 <span id="totalInstructorsCount">-</span> 位讲师，
+        累计 <span id="totalReviewsCount">-</span> 条学生评价。
+    </div>
+
+    <!-- Course List -->
+    <div id="coursesList">
+        <div class="loading">
+            <i class="fas fa-spinner"></i>
+            正在加载课程列表...
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="text-center" style="margin-top: 30px; display: none;">
+        <nav>
+            <ul class="pagination justify-content-center" style="font-size: 13px;">
+                <!-- Pagination will be populated by JavaScript -->
+            </ul>
+        </nav>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentPage = 1;
+let currentStage = '';
+let currentSearch = '';
+const itemsPerPage = 20;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadCourseStats();
+    loadCourses();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    const searchInput = document.getElementById('courseSearch');
+    const stageFilter = document.getElementById('stageFilter');
+    
+    searchInput.addEventListener('input', KnowledgeBase.Utils.debounce(handleSearch, 300));
+    stageFilter.addEventListener('change', handleStageFilter);
+}
+
+function handleSearch(event) {
+    currentSearch = event.target.value.trim();
+    currentPage = 1;
+    loadCourses();
+}
+
+function handleStageFilter(event) {
+    currentStage = event.target.value;
+    currentPage = 1;
+    loadCourses();
+}
+
+async function loadCourseStats() {
+    try {
+        const coursesResponse = await KnowledgeBase.API.courses.getAll();
+        const instructorsResponse = await KnowledgeBase.API.instructors.getAll();
+        
+        let totalReviews = 0;
+        if (coursesResponse.success) {
+            coursesResponse.data.forEach(course => {
+                totalReviews += course.total_reviews || 0;
+            });
+            
+            document.getElementById('totalCoursesCount').textContent = coursesResponse.count || 0;
+        }
+        
+        if (instructorsResponse.success) {
+            document.getElementById('totalInstructorsCount').textContent = instructorsResponse.count || 0;
+        }
+        
+        document.getElementById('totalReviewsCount').textContent = totalReviews;
+    } catch (error) {
+        console.error('Error loading course stats:', error);
+    }
+}
+
+async function loadCourses() {
+    const container = document.getElementById('coursesList');
+    KnowledgeBase.Utils.showLoading(container, '正在加载课程...');
+    
+    try {
+        const params = {
+            page: currentPage,
+            per_page: itemsPerPage
+        };
+        
+        if (currentStage) {
+            params.stage = currentStage;
+        }
+        
+        if (currentSearch) {
+            params.search = currentSearch;
+        }
+        
+        const response = await KnowledgeBase.API.courses.getAll(params);
+        
+        if (response.success) {
+            renderCourses(response.data, container);
+            renderPagination(response.pagination);
+        } else {
+            throw new Error(response.message || '加载失败');
+        }
+    } catch (error) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>加载失败</h4>
+                <p>无法加载课程列表，请稍后重试</p>
+            </div>
+        `;
+    }
+}
+
+function renderCourses(courses, container) {
+    if (courses.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h4>未找到课程</h4>
+                <p>没有符合条件的课程，请尝试修改搜索条件</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = courses.map(course => `
+        <div class="course-card">
+            <div class="course-title">
+                <a href="/courses/${course.id}">${escapeHtml(course.title)}</a>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <span class="course-instructor">
+                    <i class="fas fa-user-tie"></i>
+                    ${escapeHtml(course.instructor ? course.instructor.name : '未知讲师')}
+                </span>
+                <span style="margin-left: 15px; font-size: 12px; color: var(--text-secondary);">
+                    ${course.stage}
+                </span>
+            </div>
+            <div class="course-description">
+                ${escapeHtml(course.description || '暂无课程描述')}
+            </div>
+            <div class="course-footer">
+                <div class="course-rating">
+                    <span class="stars" style="color: #fc3; margin-right: 5px;">${generateStars(course.average_rating)}</span>
+                    <span>${course.average_rating.toFixed(1)}</span>
+                </div>
+                <div class="course-reviews">
+                    ${course.total_reviews} 条评价
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div style="border: 1px solid var(--border-color);">${html}</div>`;
+}
+
+function renderPagination(pagination) {
+    const container = document.getElementById('pagination');
+    
+    if (!pagination || pagination.pages <= 1) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    const { page, pages } = pagination;
+    let html = '';
+    
+    // Previous page
+    if (page > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1})">&laquo; 上一页</a></li>`;
+    }
+    
+    // Page numbers
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(pages, page + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const active = i === page ? 'active' : '';
+        html += `<li class="page-item ${active}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+    }
+    
+    // Next page
+    if (page < pages) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1})">下一页 &raquo;</a></li>`;
+    }
+    
+    container.querySelector('.pagination').innerHTML = html;
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadCourses();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function generateStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    let stars = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        stars += '<i class="fas fa-star"></i>';
+    }
+    
+    if (hasHalfStar) {
+        stars += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    for (let i = 0; i < emptyStars; i++) {
+        stars += '<i class="far fa-star"></i>';
+    }
+    
+    return stars;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

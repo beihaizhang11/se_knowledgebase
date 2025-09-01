@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}搜索结果 - BDIC-SE 知识库{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/course_detail.css') }}">
+<style>
+.search-header {
+    background: var(--steam-gradient-1);
+    padding: 40px 0;
+    text-align: center;
+}
+
+.search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.search-form-main {
+    margin-bottom: 30px;
+}
+
+.search-input-main {
+    width: 100%;
+    max-width: 600px;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--steam-bg-light);
+    color: var(--steam-text-light);
+    border: 1px solid var(--steam-border);
+}
+
+.search-input-main:focus {
+    outline: none;
+    border-color: var(--steam-blue);
+    box-shadow: 0 0 0 0.2rem rgba(102, 192, 244, 0.25);
+}
+
+.search-btn-main {
+    padding: 15px 30px;
+    margin-left: 10px;
+    background: var(--steam-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn-main:hover {
+    background: var(--steam-blue-hover);
+    transform: translateY(-2px);
+}
+
+.search-results {
+    margin-top: 40px;
+}
+
+.results-info {
+    margin-bottom: 30px;
+    color: var(--steam-text-medium);
+    font-size: 1.1rem;
+}
+
+.result-item {
+    background: var(--steam-bg-medium);
+    border: 1px solid var(--steam-border);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.result-item:hover {
+    border-color: var(--steam-blue);
+    box-shadow: 0 5px 20px rgba(102, 192, 244, 0.1);
+    transform: translateY(-2px);
+}
+
+.result-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.result-title a {
+    color: var(--steam-text-light);
+    text-decoration: none;
+}
+
+.result-title a:hover {
+    color: var(--steam-blue);
+}
+
+.result-meta {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    color: var(--steam-text-medium);
+    font-size: 0.9rem;
+}
+
+.result-description {
+    color: var(--steam-text-light);
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.result-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.result-tag {
+    background: var(--steam-bg-dark);
+    color: var(--steam-text-medium);
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    border: 1px solid var(--steam-border);
+}
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--steam-text-medium);
+}
+
+.no-results i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.search-suggestions {
+    margin-top: 30px;
+    padding: 20px;
+    background: var(--steam-bg-light);
+    border-radius: 8px;
+    border: 1px solid var(--steam-border);
+}
+
+.search-suggestions h4 {
+    margin-bottom: 15px;
+    color: var(--steam-text-light);
+}
+
+.suggestion-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.suggestion-tag {
+    background: var(--steam-bg-medium);
+    color: var(--steam-blue);
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    border: 1px solid var(--steam-border);
+    transition: all 0.3s ease;
+}
+
+.suggestion-tag:hover {
+    background: var(--steam-blue);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.loading-results {
+    text-align: center;
+    padding: 40px;
+    color: var(--steam-text-medium);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-header">
+    <div class="search-container">
+        <h1>搜索课程</h1>
+        <form class="search-form-main" id="searchForm">
+            <input type="text" class="search-input-main" id="searchInput" 
+                   placeholder="搜索课程、教师或关键词..." value="{{ query }}">
+            <button type="submit" class="search-btn-main">
+                <i class="fas fa-search"></i> 搜索
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="search-container">
+    <div class="search-results" id="searchResults">
+        {% if query %}
+        <div class="results-info" id="resultsInfo">
+            正在搜索 "<strong>{{ query }}</strong>"...
+        </div>
+        <div class="loading-results">
+            <i class="fas fa-spinner fa-spin loading-spinner"></i>
+            <p>搜索中...</p>
+        </div>
+        {% else %}
+        <div class="search-suggestions">
+            <h4>热门搜索</h4>
+            <div class="suggestion-tags">
+                <a href="?q=软件工程" class="suggestion-tag">软件工程</a>
+                <a href="?q=数据结构" class="suggestion-tag">数据结构</a>
+                <a href="?q=算法" class="suggestion-tag">算法</a>
+                <a href="?q=Web开发" class="suggestion-tag">Web开发</a>
+                <a href="?q=移动开发" class="suggestion-tag">移动开发</a>
+                <a href="?q=项目管理" class="suggestion-tag">项目管理</a>
+                <a href="?q=张教授" class="suggestion-tag">张教授</a>
+                <a href="?q=李博士" class="suggestion-tag">李博士</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const resultsInfo = document.getElementById('resultsInfo');
+    
+    // 如果有查询参数，立即执行搜索
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    if (query) {
+        performSearch(query);
+    }
+    
+    // 搜索表单提交
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (query) {
+            // 更新URL
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('q', query);
+            window.history.pushState({}, '', newUrl);
+            
+            performSearch(query);
+        }
+    });
+    
+    async function performSearch(query) {
+        try {
+            // 显示加载状态
+            searchResults.innerHTML = `
+                <div class="results-info">
+                    正在搜索 "<strong>${escapeHtml(query)}</strong>"...
+                </div>
+                <div class="loading-results">
+                    <i class="fas fa-spinner fa-spin loading-spinner"></i>
+                    <p>搜索中...</p>
+                </div>
+            `;
+            
+            // 执行搜索API调用
+            const response = await fetch(`/api/v1/courses/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                displayResults(data.data, query, data.count);
+            } else {
+                throw new Error(data.message || '搜索失败');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            searchResults.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>搜索出错</h3>
+                    <p>搜索时出现错误，请稍后重试。</p>
+                    <p class="text-muted">${escapeHtml(error.message)}</p>
+                </div>
+            `;
+        }
+    }
+    
+    function displayResults(courses, query, count) {
+        if (courses.length === 0) {
+            searchResults.innerHTML = `
+                <div class="results-info">
+                    未找到与 "<strong>${escapeHtml(query)}</strong>" 相关的课程
+                </div>
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>没有找到相关结果</h3>
+                    <p>尝试使用不同的关键词，或查看下面的建议。</p>
+                </div>
+                <div class="search-suggestions">
+                    <h4>搜索建议</h4>
+                    <div class="suggestion-tags">
+                        <a href="?q=软件工程" class="suggestion-tag">软件工程</a>
+                        <a href="?q=数据结构" class="suggestion-tag">数据结构</a>
+                        <a href="?q=算法" class="suggestion-tag">算法</a>
+                        <a href="?q=Web开发" class="suggestion-tag">Web开发</a>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="results-info">
+                找到 <strong>${count}</strong> 个与 "<strong>${escapeHtml(query)}</strong>" 相关的课程
+            </div>
+        `;
+        
+        courses.forEach(course => {
+            const rating = course.average_rating || 0;
+            const starsHtml = generateStarsHtml(rating);
+            
+            html += `
+                <div class="result-item">
+                    <div class="result-title">
+                        <a href="/courses/${course.id}">${escapeHtml(course.title)}</a>
+                    </div>
+                    <div class="result-meta">
+                        <span><i class="fas fa-user"></i> ${escapeHtml(course.instructor?.name || '未知教师')}</span>
+                        <span><i class="fas fa-calendar"></i> ${course.stage}</span>
+                        <span><i class="fas fa-star"></i> ${starsHtml} ${rating.toFixed(1)}</span>
+                    </div>
+                    <div class="result-description">
+                        ${escapeHtml(course.description || '暂无课程描述')}
+                    </div>
+                    <div class="result-tags">
+                        <span class="result-tag">${course.stage}</span>
+                        <span class="result-tag">${escapeHtml(course.instructor?.name || '未知教师')}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        searchResults.innerHTML = html;
+    }
+    
+    function generateStarsHtml(rating) {
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                html += '<i class="fas fa-star" style="color: var(--steam-yellow);"></i>';
+            } else {
+                html += '<i class="far fa-star" style="color: var(--steam-text-dark);"></i>';
+            }
+        }
+        return html;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+});
+</script>
+{% endblock %}

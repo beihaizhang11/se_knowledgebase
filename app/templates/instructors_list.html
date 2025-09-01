@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}讲师团队 - BDIC-SE 知识库{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Page Header -->
+    <div style="border-bottom: 3px solid var(--border-light); padding-bottom: 8px; margin-bottom: 20px;">
+        <h1 style="font-size: 2.1em; font-weight: normal; margin: 0; font-family: 'Linux Libertine', 'Georgia', 'Times', serif;">
+            讲师团队
+        </h1>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 5px 0 0 0;">
+            BDIC软件工程专业授课教师信息
+        </p>
+    </div>
+
+    <!-- Description -->
+    <div style="margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+        <p>以下是BDIC软件工程专业的授课教师团队。每位教师的信息包括所授课程、学生评价等详细信息。</p>
+    </div>
+
+    <!-- Search -->
+    <div style="background-color: var(--background-section); border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px;">
+        <input type="text" id="instructorSearch" class="form-control" placeholder="搜索讲师姓名或所授课程..." 
+               style="font-size: 13px; border: 1px solid var(--border-color);">
+    </div>
+
+    <!-- Instructor Statistics -->
+    <div class="info-box">
+        <strong>统计信息：</strong>
+        目前共有 <span id="totalInstructorsCount">-</span> 位讲师，
+        累计授课 <span id="totalCoursesCount">-</span> 门，
+        平均每位讲师负责 <span id="avgCoursesPerInstructor">-</span> 门课程。
+    </div>
+
+    <!-- Instructors List -->
+    <div id="instructorsList">
+        <div class="loading">
+            <i class="fas fa-spinner"></i>
+            正在加载讲师信息...
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allInstructors = [];
+let filteredInstructors = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadInstructors();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    const searchInput = document.getElementById('instructorSearch');
+    searchInput.addEventListener('input', KnowledgeBase.Utils.debounce(handleSearch, 300));
+}
+
+function handleSearch(event) {
+    const query = event.target.value.trim().toLowerCase();
+    
+    if (query === '') {
+        filteredInstructors = [...allInstructors];
+    } else {
+        filteredInstructors = allInstructors.filter(instructor => {
+            const nameMatch = instructor.name.toLowerCase().includes(query);
+            const courseMatch = instructor.courses && instructor.courses.some(course => 
+                course.title.toLowerCase().includes(query)
+            );
+            return nameMatch || courseMatch;
+        });
+    }
+    
+    renderInstructors(filteredInstructors);
+}
+
+async function loadInstructors() {
+    const container = document.getElementById('instructorsList');
+    KnowledgeBase.Utils.showLoading(container, '正在加载讲师信息...');
+    
+    try {
+        const response = await KnowledgeBase.API.instructors.getAll();
+        
+        if (response.success) {
+            allInstructors = response.data;
+            filteredInstructors = [...allInstructors];
+            
+            // Load courses for each instructor
+            await loadInstructorCourses();
+            
+            renderInstructors(filteredInstructors);
+            updateStatistics();
+        } else {
+            throw new Error(response.message || '加载失败');
+        }
+    } catch (error) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>加载失败</h4>
+                <p>无法加载讲师信息，请稍后重试</p>
+            </div>
+        `;
+    }
+}
+
+async function loadInstructorCourses() {
+    for (let instructor of allInstructors) {
+        try {
+            const response = await KnowledgeBase.API.instructors.getCourses(instructor.id);
+            if (response.success) {
+                instructor.courses = response.data;
+                instructor.courseCount = response.count;
+                
+                // Calculate average rating
+                let totalRating = 0;
+                let ratedCourses = 0;
+                instructor.courses.forEach(course => {
+                    if (course.average_rating > 0) {
+                        totalRating += course.average_rating;
+                        ratedCourses++;
+                    }
+                });
+                instructor.averageRating = ratedCourses > 0 ? totalRating / ratedCourses : 0;
+            }
+        } catch (error) {
+            console.error(`Error loading courses for instructor ${instructor.id}:`, error);
+            instructor.courses = [];
+            instructor.courseCount = 0;
+            instructor.averageRating = 0;
+        }
+    }
+}
+
+function updateStatistics() {
+    const totalInstructors = allInstructors.length;
+    const totalCourses = allInstructors.reduce((sum, instructor) => sum + (instructor.courseCount || 0), 0);
+    const avgCoursesPerInstructor = totalInstructors > 0 ? (totalCourses / totalInstructors).toFixed(1) : 0;
+    
+    document.getElementById('totalInstructorsCount').textContent = totalInstructors;
+    document.getElementById('totalCoursesCount').textContent = totalCourses;
+    document.getElementById('avgCoursesPerInstructor').textContent = avgCoursesPerInstructor;
+}
+
+function renderInstructors(instructors) {
+    const container = document.getElementById('instructorsList');
+    
+    if (instructors.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h4>未找到讲师</h4>
+                <p>没有符合条件的讲师，请尝试修改搜索条件</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = instructors.map(instructor => {
+        const coursesList = instructor.courses && instructor.courses.length > 0 
+            ? instructor.courses.map(course => 
+                `<a href="/courses/${course.id}" style="color: var(--link-color); margin-right: 10px; font-size: 12px;">${escapeHtml(course.title)}</a>`
+              ).join('')
+            : '<span style="color: var(--text-secondary); font-size: 12px;">暂无课程信息</span>';
+        
+        return `
+            <div class="course-card" style="border-bottom: 1px solid var(--border-light);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: normal; margin: 0; color: var(--text-color);">
+                            ${escapeHtml(instructor.name)}
+                        </h3>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 3px;">
+                            ${instructor.courseCount || 0} 门课程
+                            ${instructor.averageRating > 0 ? ` • 平均评分 ${instructor.averageRating.toFixed(1)} ⭐` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                ${instructor.bio ? `
+                    <div style="font-size: 13px; color: var(--text-color); margin-bottom: 10px; line-height: 1.4;">
+                        ${escapeHtml(instructor.bio)}
+                    </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 8px;">
+                    <strong style="font-size: 13px; color: var(--text-color);">授课课程：</strong>
+                </div>
+                <div style="margin-bottom: 8px; line-height: 1.6;">
+                    ${coursesList}
+                </div>
+                
+                ${instructor.email ? `
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        <i class="fas fa-envelope" style="margin-right: 5px;"></i>
+                        ${escapeHtml(instructor.email)}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = `<div style="border: 1px solid var(--border-color);">${html}</div>`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}
