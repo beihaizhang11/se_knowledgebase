@@ -114,6 +114,15 @@ def create_app(config_name='development'):
             ]
         })
     
+    # 注册自定义过滤器
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """将换行符转换为HTML的<br>标签"""
+        if not text:
+            return ''
+        from markupsafe import Markup
+        return Markup(str(text).replace('\n', '<br>\n'))
+    
     # 注册错误处理器
     from app.utils.error_handlers import register_error_handlers
     register_error_handlers(app)

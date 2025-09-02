@@ -172,7 +172,9 @@ function renderInstructors(instructors) {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                     <div>
                         <h3 style="font-size: 18px; font-weight: normal; margin: 0; color: var(--text-color);">
-                            ${escapeHtml(instructor.name)}
+                            <a href="/instructors/${instructor.id}" style="color: var(--text-color); text-decoration: none;">
+                                ${escapeHtml(instructor.name)}
+                            </a>
                         </h3>
                         <div style="font-size: 13px; color: var(--text-secondary); margin-top: 3px;">
                             ${instructor.courseCount || 0} 门课程

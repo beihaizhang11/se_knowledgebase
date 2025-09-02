@@ -33,6 +33,9 @@ def get_course_reviews(course_id):
         # 计算统计信息
         stats = db.session.query(
             func.avg(Review.rating).label('avg_rating'),
+            func.avg(Review.learning_gain).label('avg_learning_gain'),
+            func.avg(Review.workload).label('avg_workload'),
+            func.avg(Review.difficulty).label('avg_difficulty'),
             func.count(Review.id).label('total_reviews'),
             func.count(Review.rating).label('rated_reviews')
         ).filter_by(course_id=course_id).first()
@@ -53,6 +56,9 @@ def get_course_reviews(course_id):
                 'reviews': [review.to_dict(include_user=True) for review in reviews],
                 'statistics': {
                     'average_rating': round(float(stats.avg_rating), 1) if stats.avg_rating else 0.0,
+                    'average_learning_gain': round(float(stats.avg_learning_gain), 1) if stats.avg_learning_gain else 0.0,
+                    'average_workload': round(float(stats.avg_workload), 1) if stats.avg_workload else 0.0,
+                    'average_difficulty': round(float(stats.avg_difficulty), 1) if stats.avg_difficulty else 0.0,
                     'total_reviews': stats.total_reviews or 0,
                     'rated_reviews': stats.rated_reviews or 0
                 },
@@ -104,19 +110,32 @@ def create_review(course_id):
             }), 400
         
         # 验证评分范围（如果提供了评分）
-        rating_value = data.get('rating') if data else None
-        if rating_value is not None:
-            if not isinstance(rating_value, int) or rating_value < 1 or rating_value > 5:
-                return jsonify({
-                    'success': False,
-                    'message': '评分必须是1-5之间的整数'
-                }), 400
+        rating_fields = {
+            'rating': '综合评分',
+            'learning_gain': '课程收获',
+            'workload': '繁忙程度',
+            'difficulty': '课程难度'
+        }
+        
+        validated_ratings = {}
+        for field, field_name in rating_fields.items():
+            rating_value = data.get(field) if data else None
+            if rating_value is not None:
+                if not isinstance(rating_value, int) or rating_value < 1 or rating_value > 5:
+                    return jsonify({
+                        'success': False,
+                        'message': f'{field_name}必须是1-5之间的整数'
+                    }), 400
+            validated_ratings[field] = rating_value
         
         # 创建新评价
         review = Review(
             course_id=course_id,
             user_id=user_id,
-            rating=rating_value,
+            rating=validated_ratings.get('rating'),
+            learning_gain=validated_ratings.get('learning_gain'),
+            workload=validated_ratings.get('workload'),
+            difficulty=validated_ratings.get('difficulty'),
             content=data.get('content', '').strip() or None if data else None
         )
         
@@ -157,83 +176,7 @@ def get_review(review_id):
         }), 404
 
 
-@api_bp.route('/reviews/<int:review_id>', methods=['PUT'])
-def update_review(review_id):
-    """更新评价（仅允许评价者本人更新）"""
-    try:
-        review = Review.query.get_or_404(review_id)
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'success': False,
-                'message': '请提供更新数据'
-            }), 400
-        
-        # 验证用户权限（简单的身份验证）
-        if 'user_id' in data and data['user_id'] != review.user_id:
-            return jsonify({
-                'success': False,
-                'message': '只能修改自己的评价'
-            }), 403
-        
-        # 更新字段
-        if 'rating' in data:
-            rating_value = data['rating']
-            if rating_value is not None:
-                if not isinstance(rating_value, int) or rating_value < 1 or rating_value > 5:
-                    return jsonify({
-                        'success': False,
-                        'message': '评分必须是1-5之间的整数'
-                    }), 400
-            review.rating = rating_value
-        
-        if 'content' in data:
-            review.content = data['content'].strip() or None
-        
-        db.session.commit()
-        
-        # 更新课程的评分统计
-        review.course.update_rating_stats()
-        
-        return jsonify({
-            'success': True,
-            'message': '评价更新成功',
-            'data': review.to_dict(include_user=True, include_course=True)
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'更新评价失败: {str(e)}'
-        }), 500
 
-
-@api_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
-def delete_review(review_id):
-    """删除评价"""
-    try:
-        review = Review.query.get_or_404(review_id)
-        course = review.course  # 保存课程引用用于更新统计
-        
-        db.session.delete(review)
-        db.session.commit()
-        
-        # 更新课程的评分统计
-        course.update_rating_stats()
-        
-        return jsonify({
-            'success': True,
-            'message': '评价删除成功'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'删除评价失败: {str(e)}'
-        }), 500
 
 
 @api_bp.route('/users/<int:user_id>/reviews', methods=['GET'])
@@ -418,6 +361,112 @@ def create_review_general():
         return jsonify({
             'success': False,
             'message': f'提交评价失败: {str(e)}'
+        }), 500
+
+
+@api_bp.route('/reviews/<int:review_id>', methods=['PUT'])
+@login_required
+def update_review(review_id):
+    """更新评价"""
+    try:
+        # 获取评价
+        review = Review.query.get_or_404(review_id)
+        
+        # 检查权限：只有评价作者可以修改
+        if review.user_id != current_user.id:
+            return jsonify({
+                'success': False,
+                'message': '您只能修改自己的评价'
+            }), 403
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': '请提供要更新的数据'
+            }), 400
+        
+        # 验证评分范围（如果提供了评分）
+        rating_fields = {
+            'rating': '综合评分',
+            'learning_gain': '课程收获',
+            'workload': '繁忙程度',
+            'difficulty': '课程难度'
+        }
+        
+        for field, field_name in rating_fields.items():
+            if field in data:
+                rating_value = data[field]
+                if rating_value is not None:
+                    if not isinstance(rating_value, int) or rating_value < 1 or rating_value > 5:
+                        return jsonify({
+                            'success': False,
+                            'message': f'{field_name}必须是1-5之间的整数'
+                        }), 400
+                    setattr(review, field, rating_value)
+        
+        # 更新内容
+        if 'content' in data:
+            content = data['content'].strip() if data['content'] else None
+            review.content = content
+        
+        # 更新修改时间
+        review.updated_at = db.func.now()
+        
+        db.session.commit()
+        
+        # 更新课程的评分统计
+        review.course.update_rating_stats()
+        
+        return jsonify({
+            'success': True,
+            'message': '评价更新成功',
+            'data': review.to_dict(include_user=True, include_course=True)
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'更新评价失败: {str(e)}'
+        }), 500
+
+
+@api_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
+@login_required
+def delete_review(review_id):
+    """删除评价"""
+    try:
+        # 获取评价
+        review = Review.query.get_or_404(review_id)
+        
+        # 检查权限：只有评价作者或管理员可以删除
+        if review.user_id != current_user.id and current_user.role != 'admin':
+            return jsonify({
+                'success': False,
+                'message': '您只能删除自己的评价'
+            }), 403
+        
+        # 获取关联的课程（用于更新统计）
+        course = review.course
+        
+        # 删除评价
+        db.session.delete(review)
+        db.session.commit()
+        
+        # 更新课程的评分统计
+        course.update_rating_stats()
+        
+        return jsonify({
+            'success': True,
+            'message': '评价删除成功'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'message': f'删除评价失败: {str(e)}'
         }), 500
 
 

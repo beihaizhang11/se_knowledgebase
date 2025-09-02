@@ -16,6 +16,9 @@ class Review(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id', ondelete='CASCADE', onupdate='CASCADE'), 
                          nullable=False, comment='课程ID')
     rating = db.Column(db.SmallInteger, default=None, comment='评分(1-5分)')
+    learning_gain = db.Column(db.SmallInteger, default=None, comment='课程收获评分(1-5分)')
+    workload = db.Column(db.SmallInteger, default=None, comment='繁忙程度评分(1-5分,1=轻松,5=繁忙)')
+    difficulty = db.Column(db.SmallInteger, default=None, comment='课程难度评分(1-5分,1=简单,5=困难)')
     content = db.Column(db.Text, default=None, comment='评论内容')
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, comment='创建时间')
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow, comment='更新时间')
@@ -23,9 +26,15 @@ class Review(db.Model):
     # 添加检查约束
     __table_args__ = (
         db.CheckConstraint('rating >= 1 AND rating <= 5', name='check_rating_range'),
+        db.CheckConstraint('learning_gain >= 1 AND learning_gain <= 5', name='check_learning_gain_range'),
+        db.CheckConstraint('workload >= 1 AND workload <= 5', name='check_workload_range'),
+        db.CheckConstraint('difficulty >= 1 AND difficulty <= 5', name='check_difficulty_range'),
         db.UniqueConstraint('user_id', 'course_id', name='unique_user_course'),
         db.Index('idx_course', 'course_id'),
         db.Index('idx_rating', 'rating'),
+        db.Index('idx_learning_gain', 'learning_gain'),
+        db.Index('idx_workload', 'workload'),
+        db.Index('idx_difficulty', 'difficulty'),
         db.Index('idx_created', 'created_at'),
     )
     
@@ -39,6 +48,9 @@ class Review(db.Model):
             'user_id': self.user_id,
             'course_id': self.course_id,
             'rating': self.rating,
+            'learning_gain': self.learning_gain,
+            'workload': self.workload,
+            'difficulty': self.difficulty,
             'content': self.content,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None

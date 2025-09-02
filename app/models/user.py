@@ -1,6 +1,7 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy import func
 from app import db
 
 class User(UserMixin, db.Model):
@@ -42,6 +43,65 @@ class User(UserMixin, db.Model):
     def get_reviews(self):
         """获取用户的所有评价"""
         return self.reviews.all()
+    
+    def get_reviews_count(self):
+        """获取用户评价总数"""
+        return self.reviews.count()
+    
+    def get_average_rating_given(self):
+        """获取用户给出的平均评分"""
+        from app.models.review import Review
+        avg_result = db.session.query(func.avg(Review.rating)).filter(
+            Review.user_id == self.id,
+            Review.rating.isnot(None)
+        ).scalar()
+        return round(float(avg_result), 2) if avg_result else 0.0
+    
+    def get_recent_reviews(self, limit=5):
+        """获取用户最近的评价"""
+        from app.models.review import Review
+        return Review.query.filter(Review.user_id == self.id).order_by(Review.created_at.desc()).limit(limit).all()
+    
+    def get_stats(self):
+        """获取用户统计信息"""
+        from app.models.review import Review
+        
+        # 获取评价统计
+        total_reviews = self.reviews.count()
+        
+        # 获取平均评分
+        avg_rating = db.session.query(func.avg(Review.rating)).filter(
+            Review.user_id == self.id,
+            Review.rating.isnot(None)
+        ).scalar()
+        avg_rating = round(float(avg_rating), 2) if avg_rating else 0.0
+        
+        # 获取各维度平均分
+        avg_learning_gain = db.session.query(func.avg(Review.learning_gain)).filter(
+            Review.user_id == self.id,
+            Review.learning_gain.isnot(None)
+        ).scalar()
+        avg_learning_gain = round(float(avg_learning_gain), 2) if avg_learning_gain else 0.0
+        
+        avg_workload = db.session.query(func.avg(Review.workload)).filter(
+            Review.user_id == self.id,
+            Review.workload.isnot(None)
+        ).scalar()
+        avg_workload = round(float(avg_workload), 2) if avg_workload else 0.0
+        
+        avg_difficulty = db.session.query(func.avg(Review.difficulty)).filter(
+            Review.user_id == self.id,
+            Review.difficulty.isnot(None)
+        ).scalar()
+        avg_difficulty = round(float(avg_difficulty), 2) if avg_difficulty else 0.0
+        
+        return {
+            'total_reviews': total_reviews,
+            'avg_rating': avg_rating,
+            'avg_learning_gain': avg_learning_gain,
+            'avg_workload': avg_workload,
+            'avg_difficulty': avg_difficulty
+        }
     
     def update_updated_at(self):
         """更新最后修改时间"""

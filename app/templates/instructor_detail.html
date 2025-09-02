@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}{{ instructor.name }} - 讲师详情 - BDIC-SE 知识库{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" style="margin-bottom: 20px;">
+        <ol class="breadcrumb" style="background: none; padding: 0; margin: 0; font-size: 13px;">
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('index') }}" style="color: var(--link-color); text-decoration: none;">首页</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('instructors_list') }}" style="color: var(--link-color); text-decoration: none;">讲师团队</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">
+                {{ instructor.name }}
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Instructor Header -->
+    <div class="instructor-header" style="background-color: var(--background-section); border: 1px solid var(--border-color); padding: 30px; margin-bottom: 30px; border-radius: 8px;">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                {% if instructor.avatar_url %}
+                    <img src="{{ instructor.avatar_url }}" alt="{{ instructor.name }}" 
+                         class="instructor-avatar" 
+                         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--border-color);">
+                {% else %}
+                    <div class="instructor-avatar-placeholder" 
+                         style="width: 150px; height: 150px; border-radius: 50%; background-color: var(--background-light); border: 4px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-user" style="font-size: 60px; color: var(--text-secondary);"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <h1 style="font-size: 2.5em; font-weight: normal; margin: 0 0 10px 0; color: var(--text-color); font-family: 'Linux Libertine', 'Georgia', 'Times', serif;">
+                    {{ instructor.name }}
+                </h1>
+                {% if instructor.email %}
+                    <div style="margin-bottom: 15px;">
+                        <i class="fas fa-envelope" style="color: var(--text-secondary); margin-right: 8px;"></i>
+                        <a href="mailto:{{ instructor.email }}" style="color: var(--link-color); text-decoration: none; font-size: 14px;">
+                            {{ instructor.email }}
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <!-- Statistics -->
+                <div class="instructor-stats" style="margin-top: 20px;">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stat-item" style="text-align: center; padding: 15px; background-color: var(--background-light); border-radius: 6px; margin-bottom: 10px;">
+                                <div class="stat-number" id="coursesCount" style="font-size: 28px; font-weight: bold; color: var(--primary-color);">-</div>
+                                <div class="stat-label" style="font-size: 13px; color: var(--text-secondary);">授课课程</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item" style="text-align: center; padding: 15px; background-color: var(--background-light); border-radius: 6px; margin-bottom: 10px;">
+                                <div class="stat-number" id="avgRating" style="font-size: 28px; font-weight: bold; color: var(--primary-color);">-</div>
+                                <div class="stat-label" style="font-size: 13px; color: var(--text-secondary);">平均评分</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item" style="text-align: center; padding: 15px; background-color: var(--background-light); border-radius: 6px; margin-bottom: 10px;">
+                                <div class="stat-number" id="totalReviews" style="font-size: 28px; font-weight: bold; color: var(--primary-color);">-</div>
+                                <div class="stat-label" style="font-size: 13px; color: var(--text-secondary);">学生评价</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructor Bio -->
+    {% if instructor.bio %}
+    <div class="instructor-bio" style="background-color: var(--background-section); border: 1px solid var(--border-color); padding: 25px; margin-bottom: 30px; border-radius: 8px;">
+        <h2 style="font-size: 1.5em; font-weight: normal; margin: 0 0 15px 0; color: var(--text-color); border-bottom: 2px solid var(--border-light); padding-bottom: 8px;">
+            讲师简介
+        </h2>
+        <div style="font-size: 14px; line-height: 1.6; color: var(--text-color);">
+            {{ instructor.bio|nl2br }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Courses Section -->
+    <div class="instructor-courses" style="background-color: var(--background-section); border: 1px solid var(--border-color); padding: 25px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px;">
+            <h2 style="font-size: 1.5em; font-weight: normal; margin: 0; color: var(--text-color);">
+                授课课程
+            </h2>
+            <div class="course-filter" style="display: flex; gap: 10px;">
+                <select id="stageFilter" class="form-control" style="font-size: 13px; padding: 5px 10px; border: 1px solid var(--border-color); width: auto;">
+                    <option value="">所有学期</option>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                    <option value="S4">S4</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Courses List -->
+        <div id="coursesList">
+            <div class="loading" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin" style="font-size: 20px; margin-right: 10px;"></i>
+                正在加载课程信息...
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let instructorCourses = [];
+let filteredCourses = [];
+const instructorId = {{ instructor.id }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadInstructorCourses();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    const stageFilter = document.getElementById('stageFilter');
+    stageFilter.addEventListener('change', handleStageFilter);
+}
+
+function handleStageFilter(event) {
+    const selectedStage = event.target.value;
+    
+    if (selectedStage === '') {
+        filteredCourses = [...instructorCourses];
+    } else {
+        filteredCourses = instructorCourses.filter(course => course.stage === selectedStage);
+    }
+    
+    renderCourses(filteredCourses);
+}
+
+async function loadInstructorCourses() {
+    const container = document.getElementById('coursesList');
+    
+    try {
+        const response = await KnowledgeBase.API.instructors.getCourses(instructorId);
+        
+        if (response.success) {
+            instructorCourses = response.data;
+            filteredCourses = [...instructorCourses];
+            
+            renderCourses(filteredCourses);
+            updateStatistics();
+        } else {
+            throw new Error(response.message || '加载失败');
+        }
+    } catch (error) {
+        console.error('Error loading instructor courses:', error);
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px; color: var(--warning-color);"></i>
+                <h4 style="margin-bottom: 10px;">加载失败</h4>
+                <p>无法加载课程信息，请稍后重试</p>
+            </div>
+        `;
+    }
+}
+
+function updateStatistics() {
+    const coursesCount = instructorCourses.length;
+    
+    // Calculate average rating
+    let totalRating = 0;
+    let ratedCourses = 0;
+    let totalReviews = 0;
+    
+    instructorCourses.forEach(course => {
+        if (course.average_rating > 0) {
+            totalRating += course.average_rating;
+            ratedCourses++;
+        }
+        totalReviews += course.total_reviews || 0;
+    });
+    
+    const avgRating = ratedCourses > 0 ? (totalRating / ratedCourses).toFixed(1) : '-';
+    
+    document.getElementById('coursesCount').textContent = coursesCount;
+    document.getElementById('avgRating').textContent = avgRating === '-' ? '-' : avgRating + ' ⭐';
+    document.getElementById('totalReviews').textContent = totalReviews;
+}
+
+function renderCourses(courses) {
+    const container = document.getElementById('coursesList');
+    
+    if (courses.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px;"></i>
+                <h4 style="margin-bottom: 10px;">未找到课程</h4>
+                <p>该讲师暂无符合条件的课程</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = courses.map(course => {
+        const stageMap = {
+            'S1': '第一学期',
+            'S2': '第二学期', 
+            'S3': '第三学期',
+            'S4': '第四学期'
+        };
+        
+        const coverImage = course.cover_images && course.cover_images.length > 0 
+            ? course.cover_images[0] 
+            : '/static/images/default-course.jpg';
+            
+        return `
+            <div class="course-card" style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px; overflow: hidden; background-color: var(--background-light);">
+                <div class="row no-gutters">
+                    <div class="col-md-3">
+                        <img src="${escapeHtml(coverImage)}" alt="${escapeHtml(course.title)}" 
+                             style="width: 100%; height: 200px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-9">
+                        <div style="padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <h3 style="font-size: 18px; font-weight: normal; margin: 0;">
+                                    <a href="/courses/${course.id}" style="color: var(--text-color); text-decoration: none;">
+                                        ${escapeHtml(course.title)}
+                                    </a>
+                                </h3>
+                                <span class="stage-badge" style="background-color: var(--primary-color); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                    ${stageMap[course.stage] || course.stage}
+                                </span>
+                            </div>
+                            
+                            ${course.description ? `
+                                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                                    ${escapeHtml(course.description).substring(0, 150)}${course.description.length > 150 ? '...' : ''}
+                                </p>
+                            ` : ''}
+                            
+                            <div class="course-meta" style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary);">
+                                <div>
+                                    ${course.average_rating > 0 ? `
+                                        <span style="margin-right: 15px;">
+                                            <i class="fas fa-star" style="color: #ffc107; margin-right: 3px;"></i>
+                                            ${course.average_rating.toFixed(1)}
+                                        </span>
+                                    ` : ''}
+                                    <span>
+                                        <i class="fas fa-comment" style="margin-right: 3px;"></i>
+                                        ${course.total_reviews || 0} 条评价
+                                    </span>
+                                </div>
+                                <a href="/courses/${course.id}" class="btn btn-sm btn-outline-primary" style="font-size: 12px; padding: 5px 15px;">
+                                    查看详情
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

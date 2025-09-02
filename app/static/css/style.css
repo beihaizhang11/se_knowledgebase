@@ -1,133 +1,186 @@
-/* BDIC-SE Knowledge Base - Wikipedia-style Academic Design */
+/* BDIC-SE Knowledge Base - Steam-style Gaming Design */
 
 :root {
-    /* Wikipedia-inspired Color Palette */
-    --primary-color: #0645ad;      /* Wikipedia blue */
-    --primary-hover: #0b0080;      /* Darker blue for hover */
-    --text-color: #222222;         /* Dark text for readability */
-    --text-secondary: #54595d;     /* Secondary text */
-    --border-color: #a2a9b1;       /* Subtle gray borders */
-    --border-light: #eaecf0;       /* Light borders */
-    --background-main: #ffffff;    /* Pure white background */
-    --background-section: #f8f9fa; /* Light section background */
-    --background-nav: #f6f6f6;     /* Navigation background */
-    --link-color: #0645ad;         /* Standard link color */
-    --link-visited: #0b0080;       /* Visited link color */
-    --warning-bg: #fef6e7;         /* Warning background */
-    --warning-border: #fc3;        /* Warning border */
-    --info-bg: #eaf3ff;           /* Info background */
-    --info-border: #36c;          /* Info border */
+    /* Steam-inspired Color Palette */
+    --steam-bg-dark: #1b2838;
+    --steam-bg-medium: #2a475e;
+    --steam-bg-light: #3d5974;
+    --steam-blue: #66c0f4;
+    --steam-blue-hover: #4db8e8;
+    --steam-green: #5ba554;
+    --steam-orange: #ff9500;
+    --steam-red: #cd5c5c;
+    --steam-yellow: #f1c40f;
+    --steam-text-light: #c7d5e0;
+    --steam-text-medium: #8f98a0;
+    --steam-text-dark: #67727a;
+    --steam-border: #3d4450;
+    --steam-gradient-1: linear-gradient(135deg, #667db6 0%, #0082c8 25%, #0082c8 75%, #667db6 100%);
+    --steam-gradient-2: linear-gradient(45deg, #1e3c72 0%, #2a5298 100%);
+    --steam-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    
+    /* Compatibility aliases for existing components */
+    --primary-color: var(--steam-blue);
+    --primary-hover: var(--steam-blue-hover);
+    --text-color: var(--steam-text-light);
+    --text-secondary: var(--steam-text-medium);
+    --border-color: var(--steam-border);
+    --border-light: var(--steam-border);
+    --background-main: var(--steam-bg-dark);
+    --background-section: var(--steam-bg-medium);
+    --background-nav: var(--steam-bg-medium);
+    --link-color: var(--steam-blue);
+    --link-visited: var(--steam-blue-hover);
+    --warning-bg: rgba(255, 149, 0, 0.1);
+    --warning-border: var(--steam-orange);
+    --info-bg: rgba(102, 192, 244, 0.1);
+    --info-border: var(--steam-blue);
 }
 
-/* Global Styles - Wikipedia-style Typography */
+/* Global Styles - Steam-style Typography */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Lato, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-main);
+    color: var(--steam-text-light);
+    background-color: var(--steam-bg-dark);
     font-size: 14px;
+    margin: 0;
+    padding: 0;
 }
 
-/* Typography Hierarchy */
+/* Typography Hierarchy - Steam Style */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-    font-weight: normal;
-    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 600;
+    color: white;
     border-bottom: none;
     margin-top: 1em;
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-h1 { font-size: 2.3em; }
-h2 { font-size: 1.8em; border-bottom: 3px solid var(--border-light); padding-bottom: 2px; }
+h1 { font-size: 2.5em; }
+h2 { 
+    font-size: 1.8em; 
+    border-bottom: 2px solid var(--steam-blue); 
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
 h3 { font-size: 1.4em; }
 h4 { font-size: 1.2em; }
 
-/* Links - Wikipedia style */
+/* Links - Steam Style */
 a {
-    color: var(--link-color);
+    color: var(--steam-blue);
     text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 a:hover {
-    color: var(--primary-hover);
-    text-decoration: underline;
+    color: var(--steam-blue-hover);
+    text-decoration: none;
 }
 
 a:visited {
-    color: var(--link-visited);
+    color: var(--steam-blue);
 }
 
-/* Override Bootstrap styles */
+/* Override Bootstrap styles - Steam Style */
 .bg-primary {
-    background-color: var(--background-nav) !important;
-    border-bottom: 1px solid var(--border-color) !important;
+    background: var(--steam-bg-medium) !important;
+    border-bottom: 1px solid var(--steam-border) !important;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background: var(--steam-gradient-2);
+    border: none;
+    color: white;
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-hover);
-    border-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #2a5298, #1e3c72);
+    border: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--steam-border);
+    color: var(--steam-text-light);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--steam-blue);
+    color: white;
 }
 
 .text-primary {
-    color: var(--primary-color) !important;
+    color: var(--steam-blue) !important;
 }
 
-/* Main Content - Wikipedia-style Layout */
+/* Main Content - Steam-style Layout */
 .main-content {
     min-height: calc(100vh - 120px);
-    background-color: var(--background-main);
-    border-left: 1px solid var(--border-light);
-    border-right: 1px solid var(--border-light);
+    background-color: var(--steam-bg-dark);
     max-width: 1200px;
     margin: 0 auto;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    box-shadow: var(--steam-shadow);
 }
 
-/* Stage Cards - Wikipedia-style Sections */
+/* Stage Cards - Steam-style Sections */
 .stage-container {
     margin-bottom: 1.5rem;
-    border: 1px solid var(--border-color);
-    background-color: var(--background-main);
+    border: 1px solid var(--steam-border);
+    background-color: var(--steam-bg-medium);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stage-card {
     border: none;
-    border-radius: 0;
-    background: var(--background-main);
+    border-radius: 8px;
+    background: var(--steam-bg-medium);
     box-shadow: none;
-    transition: none;
-    overflow: visible;
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .stage-card:hover {
-    box-shadow: none;
-    transform: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
 .stage-header {
-    background-color: var(--background-section);
-    color: var(--text-color);
-    padding: 12px 15px;
+    background: var(--steam-gradient-2);
+    color: white;
+    padding: 15px 20px;
     cursor: pointer;
     user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--steam-border);
+    transition: all 0.3s ease;
     font-size: 14px;
+    font-weight: 600;
 }
 
 .stage-header:hover {
-    background-color: #eee;
+    background: linear-gradient(45deg, #2a5298, #1e3c72);
 }
 
 .stage-title {
@@ -277,7 +330,7 @@ a:visited {
 
 /* Header Section - Wikipedia-style */
 .header-section {
-    background-color: var(--background-section);
+    background-color: var(--steam-bg-dark);
     border-bottom: 1px solid var(--border-color);
     padding: 20px 0;
     margin-bottom: 0;
@@ -393,10 +446,25 @@ a:visited {
 .navbar {
     box-shadow: none;
     border-bottom: 1px solid var(--border-color);
+    background-color: var(--steam-bg-dark) !important;
+}
+
+/* Override all navbar text colors to white */
+.navbar-brand {
+    color: white !important;
+}
+
+.navbar-nav .nav-link {
+    color: white !important;
 }
 
 .navbar-nav .nav-link:hover {
+    color: white !important;
     text-decoration: underline;
+}
+
+.navbar-nav .dropdown-toggle {
+    color: white !important;
 }
 
 /* Table styles (for future use) */

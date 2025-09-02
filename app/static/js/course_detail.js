@@ -10,12 +10,25 @@ class CourseDetail {
         this.images = [];
         this.currentPage = 1;
         this.selectedRating = 0;
+        this.detailedRatings = {
+            learning_gain: 0,
+            workload: 0,
+            difficulty: 0
+        };
         this.isLoading = false;
     }
 
-    static init(courseId) {
+    static init(courseData) {
         const instance = new CourseDetail();
-        instance.courseId = courseId;
+        if (typeof courseData === 'number') {
+            // Backwards compatibility - courseData is just courseId
+            instance.courseId = courseData;
+            instance.courseImages = [];
+        } else {
+            // New format - courseData is an object with id and images
+            instance.courseId = courseData.id;
+            instance.courseImages = courseData.images || [];
+        }
         instance.initializeComponents();
         return instance;
     }
@@ -27,6 +40,7 @@ class CourseDetail {
         this.setupEventListeners();
         this.generateRatingStars();
         this.setupStarRating();
+        this.setupDetailedRatings();
     }
 
     setupEventListeners() {
@@ -49,12 +63,25 @@ class CourseDetail {
     }
 
     loadCourseImages() {
-        // Mock image data - in real app, fetch from API
-        this.images = [
-            '/static/img/course-placeholder-1.jpg',
-            '/static/img/course-placeholder-2.jpg',
-            '/static/img/course-placeholder-3.jpg'
-        ];
+        // Use real course images from database
+        if (this.courseImages && this.courseImages.length > 0) {
+            // Convert image names to full paths
+            this.images = this.courseImages.map(imageName => {
+                // Handle both full paths and just filenames
+                if (imageName.startsWith('/') || imageName.startsWith('http')) {
+                    return imageName;
+                } else {
+                    return `/static/images/${imageName}`;
+                }
+            });
+        } else {
+            // Fallback to placeholder images if no course images available
+            this.images = [
+                '/static/images/course_1.jpg',
+                '/static/images/course_2.jpg',
+                '/static/images/course_3.jpg'
+            ];
+        }
 
         this.displayMainImage(0);
         this.generateThumbnails();
@@ -178,6 +205,52 @@ class CourseDetail {
         });
     }
 
+    setupDetailedRatings() {
+        // Setup detailed rating interactions for learning_gain, workload, difficulty
+        const detailedRatingContainers = document.querySelectorAll('.detailed-ratings .star-rating-input');
+        
+        detailedRatingContainers.forEach(container => {
+            const stars = container.querySelectorAll('.fa-star');
+            const fieldName = stars[0]?.getAttribute('data-field');
+            
+            if (!fieldName) return;
+            
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    const rating = index + 1;
+                    this.detailedRatings[fieldName] = rating;
+                    this.updateDetailedStarDisplay(stars, rating);
+                });
+                
+                star.addEventListener('mouseenter', () => {
+                    this.updateDetailedStarDisplay(stars, index + 1, true);
+                });
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                this.updateDetailedStarDisplay(stars, this.detailedRatings[fieldName] || 0);
+            });
+        });
+    }
+
+    updateDetailedStarDisplay(stars, rating, isHover = false) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+                if (isHover) {
+                    star.style.color = '#ffc107';
+                } else {
+                    star.style.color = '#007bff';
+                }
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+                star.style.color = '#dee2e6';
+            }
+        });
+    }
+
     async loadReviews() {
         if (this.isLoading) return;
         
@@ -202,6 +275,8 @@ class CourseDetail {
                 if (this.currentPage === 1) {
                     reviewsContainer.innerHTML = '';
                     this.updateRatingBreakdown(data.data.rating_distribution);
+                    // Update detailed ratings display
+                    this.updateDetailedRatingsDisplay(data.data.statistics);
                 }
                 
                 this.renderReviews(data.data.reviews, this.currentPage === 1);
@@ -313,6 +388,55 @@ class CourseDetail {
         }
     }
 
+    updateDetailedRatingsDisplay(statistics) {
+        if (!statistics) return;
+
+        // Update learning gain
+        const avgLearningGain = document.getElementById('avgLearningGain');
+        const learningGainStars = document.getElementById('learningGainStars');
+        if (avgLearningGain && learningGainStars) {
+            const learningGainValue = statistics.average_learning_gain || 0;
+            avgLearningGain.textContent = learningGainValue.toFixed(1);
+            this.generateMiniStars(learningGainStars, learningGainValue);
+        }
+
+        // Update workload
+        const avgWorkload = document.getElementById('avgWorkload');
+        const workloadStars = document.getElementById('workloadStars');
+        if (avgWorkload && workloadStars) {
+            const workloadValue = statistics.average_workload || 0;
+            avgWorkload.textContent = workloadValue.toFixed(1);
+            this.generateMiniStars(workloadStars, workloadValue);
+        }
+
+        // Update difficulty
+        const avgDifficulty = document.getElementById('avgDifficulty');
+        const difficultyStars = document.getElementById('difficultyStars');
+        if (avgDifficulty && difficultyStars) {
+            const difficultyValue = statistics.average_difficulty || 0;
+            avgDifficulty.textContent = difficultyValue.toFixed(1);
+            this.generateMiniStars(difficultyStars, difficultyValue);
+        }
+    }
+
+    generateMiniStars(container, rating) {
+        container.innerHTML = '';
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            if (i <= fullStars) {
+                star.className = 'fas fa-star filled';
+            } else if (i === fullStars + 1 && hasHalfStar) {
+                star.className = 'fas fa-star-half-alt filled';
+            } else {
+                star.className = 'far fa-star';
+            }
+            container.appendChild(star);
+        }
+    }
+
     updateLoadMoreButton(pagination) {
         const loadMoreContainer = document.getElementById('loadMoreContainer');
         if (!loadMoreContainer) return;
@@ -380,6 +504,7 @@ class CourseDetail {
 
     resetReviewForm() {
         this.selectedRating = 0;
+        this.detailedRatings = {};
         this.highlightStars(0);
         
         const ratingText = document.getElementById('ratingText');
@@ -392,6 +517,13 @@ class CourseDetail {
         if (reviewContent) {
             reviewContent.value = '';
         }
+
+        // Reset detailed rating stars
+        const detailedRatingContainers = document.querySelectorAll('.detailed-ratings .star-rating-input');
+        detailedRatingContainers.forEach(container => {
+            const stars = container.querySelectorAll('.fa-star');
+            this.updateDetailedStarDisplay(stars, 0);
+        });
     }
 
     async submitReview() {
@@ -405,7 +537,10 @@ class CourseDetail {
         // User ID will be determined by the server from the authenticated session
         const reviewData = {
             rating: this.selectedRating,
-            content: content || null
+            content: content || null,
+            learning_gain: this.detailedRatings.learning_gain || null,
+            workload: this.detailedRatings.workload || null,
+            difficulty: this.detailedRatings.difficulty || null
         };
 
         try {

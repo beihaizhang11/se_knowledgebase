@@ -70,9 +70,32 @@ def logout():
 @auth_bp.route('/profile')
 @login_required
 def profile():
-    # 
     """用户个人资料"""
-    return render_template('auth/profile.html', title='个人资料', user=current_user)
+    # 获取分页参数
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # 每页显示10条评价
+    
+    # 获取用户统计信息
+    user_stats = current_user.get_stats()
+    
+    # 获取用户的评价（分页）
+    from app.models.review import Review
+    reviews = Review.query.filter(Review.user_id == current_user.id)\
+        .order_by(Review.created_at.desc())\
+        .paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+    
+    return render_template(
+        'auth/profile.html', 
+        title='个人资料', 
+        user=current_user,
+        user_stats=user_stats,
+        reviews=reviews.items,
+        pagination=reviews
+    )
 
 @auth_bp.route('/api/check-auth')
 def check_auth():

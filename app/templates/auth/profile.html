@@ -1,226 +1,366 @@
 {% extends "base.html" %}
 
-{% block title %}个人资料 - BDIC-SE Knowledge Base{% endblock %}
+{% block title %}{{ user.username }} - 个人资料 - BDIC-SE 知识库{% endblock %}
 
-{% block extra_css %}
+{% block extra_styles %}
 <style>
 .profile-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    margin-top: 80px;
+    background-color: var(--steam-bg-dark);
 }
 
 .profile-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 40px;
-    border-radius: 20px;
+    background: var(--steam-gradient-2);
+    border-radius: 8px;
+    padding: 30px;
     margin-bottom: 30px;
-    text-align: center;
+    box-shadow: var(--steam-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/static/images/pattern-bg.png') repeat;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.profile-header-content {
+    position: relative;
+    z-index: 1;
 }
 
 .profile-avatar {
     width: 120px;
     height: 120px;
-    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    margin: 0 auto 20px;
+    border: 4px solid var(--steam-blue);
+    background-color: var(--steam-bg-medium);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 48px;
-    font-weight: bold;
-}
-
-.profile-name {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
-.profile-role {
-    font-size: 18px;
-    opacity: 0.9;
+    color: var(--steam-blue);
     margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.profile-info h1 {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 2.2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.profile-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.profile-meta-item {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--steam-text-light);
 }
 
 .profile-stats {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-.stat-item {
+.stat-card {
+    background: var(--steam-bg-medium);
+    border: 1px solid var(--steam-border);
+    border-radius: 8px;
+    padding: 20px;
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(102, 192, 244, 0.2);
 }
 
 .stat-number {
-    font-size: 24px;
+    font-size: 2.5em;
     font-weight: bold;
-    display: block;
+    color: var(--steam-blue);
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .stat-label {
+    color: var(--steam-text-medium);
     font-size: 14px;
-    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.profile-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+.reviews-section {
+    background: var(--steam-bg-medium);
+    border: 1px solid var(--steam-border);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
 }
 
-.profile-card {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.card-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.card-title i {
-    font-size: 18px;
-    color: #667eea;
-}
-
-.info-item {
+.section-header {
     display: flex;
     justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-label {
-    font-weight: 500;
-    color: #666;
-}
-
-.info-value {
-    color: #333;
-    font-weight: 500;
-}
-
-.btn-group {
-    display: flex;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 500;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.btn-outline {
-    background: transparent;
-    color: #667eea;
-    border: 2px solid #667eea;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.course-list {
-    list-style: none;
-    padding: 0;
-}
-
-.course-item {
-    display: flex;
     align-items: center;
-    padding: 15px;
-    border-radius: 10px;
-    background: #f8f9fa;
-    margin-bottom: 10px;
-    transition: background 0.3s ease;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--steam-blue);
 }
 
-.course-item:hover {
-    background: #e9ecef;
+.section-title {
+    color: white;
+    font-size: 1.5em;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.review-card {
+    background: var(--steam-bg-light);
+    border: 1px solid var(--steam-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.review-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.review-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--steam-blue);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
 }
 
 .course-info {
     flex: 1;
 }
 
-.course-name {
+.course-title {
+    color: white;
+    font-size: 1.2em;
     font-weight: 600;
-    color: #333;
     margin-bottom: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.course-instructor {
-    color: #666;
-    font-size: 14px;
+.course-title a {
+    color: inherit;
+    text-decoration: none;
 }
 
-.course-status {
-    padding: 4px 12px;
-    border-radius: 20px;
+.course-title a:hover {
+    color: var(--steam-blue);
+}
+
+.course-meta {
+    color: var(--steam-text-medium);
+    font-size: 13px;
+}
+
+.review-date {
+    color: var(--steam-text-dark);
     font-size: 12px;
-    font-weight: 500;
-    background: #d4edda;
-    color: #155724;
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 20px;
+}
+
+.rating-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.rating-item {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border: 1px solid var(--steam-border);
+}
+
+.rating-label {
+    color: var(--steam-text-medium);
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rating-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--steam-blue);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rating-stars {
+    color: var(--steam-yellow);
+    font-size: 14px;
+    margin-top: 3px;
+}
+
+.review-content {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+    border-left: 3px solid var(--steam-blue);
+}
+
+.review-text {
+    color: var(--steam-text-light);
+    line-height: 1.6;
+    margin: 0;
+    font-style: italic;
 }
 
 .empty-state {
     text-align: center;
-    padding: 40px 20px;
-    color: #666;
+    padding: 60px 20px;
+    color: var(--steam-text-medium);
 }
 
 .empty-state i {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: #ccc;
+    font-size: 4em;
+    color: var(--steam-text-dark);
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: var(--steam-text-medium);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: var(--steam-text-dark);
+    font-size: 14px;
+}
+
+.btn-steam {
+    background: var(--steam-gradient-2);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-steam:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    color: white;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.pagination {
+    background: var(--steam-bg-medium);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.pagination .page-link {
+    background: transparent;
+    border: 1px solid var(--steam-border);
+    color: var(--steam-blue);
+    margin: 0 2px;
+    border-radius: 4px;
+}
+
+.pagination .page-link:hover {
+    background: var(--steam-bg-light);
+    color: var(--steam-blue-hover);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--steam-blue);
+    border-color: var(--steam-blue);
+    color: white;
 }
 
 @media (max-width: 768px) {
-    .profile-content {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .profile-stats {
-        gap: 20px;
-    }
-    
-    .btn-group {
-        flex-direction: column;
+    .profile-container {
+        padding: 15px;
     }
     
     .profile-header {
-        padding: 30px 20px;
+        padding: 20px;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+    }
+    
+    .profile-info h1 {
+        font-size: 1.8em;
+    }
+    
+    .profile-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .rating-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .review-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .review-date {
+        text-align: left;
+        margin-left: 0;
     }
 }
 </style>
@@ -228,165 +368,419 @@
 
 {% block content %}
 <div class="profile-container">
+    <!-- Profile Header -->
     <div class="profile-header">
-        <div class="profile-avatar">
-            {{ user.first_name[0].upper() }}{{ user.last_name[0].upper() }}
-        </div>
-        <div class="profile-name">{{ user.get_full_name() }}</div>
-        <div class="profile-role">
-            {% if user.role == 'student' %}
-                🎓 学生
-            {% elif user.role == 'teacher' %}
-                👨‍🏫 教师
-            {% else %}
-                👑 管理员
-            {% endif %}
-        </div>
-        <div class="profile-stats">
-            <div class="stat-item">
-                <span class="stat-number">{{ user.get_reviews()|length }}</span>
-                <span class="stat-label">评价数量</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">{{ (user.created_at.now() - user.created_at).days }}</span>
-                <span class="stat-label">加入天数</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">{{ user.last_login.strftime('%m-%d') if user.last_login else '从未' }}</span>
-                <span class="stat-label">最后登录</span>
+        <div class="profile-header-content">
+            <div class="row align-items-center">
+                <div class="col-md-auto">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="profile-info">
+                        <h1>{{ user.username }}</h1>
+                        <div class="profile-meta">
+                            <div class="profile-meta-item">
+                                <i class="fas fa-envelope"></i> {{ user.email }}
+                            </div>
+                            <div class="profile-meta-item">
+                                <i class="fas fa-calendar-alt"></i> 注册于 {{ user.created_at.strftime('%Y年%m月%d日') if user.created_at }}
+                            </div>
+                            {% if user.updated_at and user.updated_at != user.created_at %}
+                            <div class="profile-meta-item">
+                                <i class="fas fa-clock"></i> 最后活动 {{ user.updated_at.strftime('%Y年%m月%d日') }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="profile-content">
-        <div class="profile-card">
-            <h2 class="card-title">
-                <i class="fas fa-user"></i>
-                个人信息
-            </h2>
-            
-            <div class="info-item">
-                <span class="info-label">用户名</span>
-                <span class="info-value">{{ user.username }}</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">邮箱</span>
-                <span class="info-value">{{ user.email }}</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">姓名</span>
-                <span class="info-value">{{ user.get_full_name() }}</span>
-            </div>
-            
-            {% if user.student_id %}
-            <div class="info-item">
-                <span class="info-label">学号</span>
-                <span class="info-value">{{ user.student_id }}</span>
-            </div>
-            {% endif %}
-            
-            <div class="info-item">
-                <span class="info-label">角色</span>
-                <span class="info-value">
-                    {% if user.role == 'student' %}学生
-                    {% elif user.role == 'teacher' %}教师
-                    {% else %}管理员
-                    {% endif %}
-                </span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">注册时间</span>
-                <span class="info-value">{{ user.created_at.strftime('%Y年%m月%d日') }}</span>
-            </div>
-            
-            <div class="btn-group">
-                <a href="#" class="btn btn-primary">编辑资料</a>
-                <a href="#" class="btn btn-outline">修改密码</a>
-            </div>
+
+    <!-- Statistics Cards -->
+    <div class="profile-stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ user_stats.total_reviews or 0 }}</div>
+            <div class="stat-label">评价总数</div>
         </div>
-        
-        <div class="profile-card">
-            <h2 class="card-title">
-                <i class="fas fa-star"></i>
-                我的评价
+        <div class="stat-card">
+            <div class="stat-number">{{ "%.1f"|format(user_stats.avg_rating or 0) }}</div>
+            <div class="stat-label">平均评分</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ user_stats.courses_reviewed or 0 }}</div>
+            <div class="stat-label">评价课程</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ user_stats.helpful_votes or 0 }}</div>
+            <div class="stat-label">获得点赞</div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-star"></i> 我的评价
             </h2>
-            
-            {% set user_reviews = user.get_reviews() %}
-            {% if user_reviews %}
-                <ul class="review-list">
-                    {% for review in user_reviews %}
-                    <li class="review-item">
-                        <div class="review-info">
-                            <div class="course-name">{{ review.course.title }}</div>
-                            <div class="review-rating">
-                                {% for i in range(1, 6) %}
-                                    {% if i <= review.rating %}
-                                        <i class="fas fa-star"></i>
-                                    {% else %}
-                                        <i class="far fa-star"></i>
-                                    {% endif %}
-                                {% endfor %}
-                                ({{ review.rating }}/5)
-                            </div>
-                            {% if review.comment %}
-                                <div class="review-comment">{{ review.comment[:100] }}{% if review.comment|length > 100 %}...{% endif %}</div>
+            <a href="{{ url_for('courses_list') }}" class="btn-steam">
+                <i class="fas fa-plus"></i> 添加评价
+            </a>
+        </div>
+
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="course-info">
+                        <h3 class="course-title">
+                            <a href="{{ url_for('course_detail', course_id=review.course.id) }}">
+                                {{ review.course.title }}
+                            </a>
+                        </h3>
+                        <div class="course-meta">
+                            {% if review.course.instructor %}
+                            <i class="fas fa-chalkboard-teacher"></i> {{ review.course.instructor.name }}
+                            {% endif %}
+                            {% if review.course.semester %}
+                            · {{ review.course.semester }}
+                            {% endif %}
+                            {% if review.course.credits %}
+                            · {{ review.course.credits }} 学分
                             {% endif %}
                         </div>
-                        <span class="review-date">{{ review.created_at.strftime('%Y-%m-%d') }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-star"></i>
-                    <p>您还没有发表任何评价</p>
-                    <a href="{{ url_for('courses_list') }}" class="btn btn-primary">浏览课程</a>
+                    </div>
+                    <div class="review-date">
+                        <i class="fas fa-clock"></i>
+                        {{ review.created_at.strftime('%Y-%m-%d') if review.created_at }}
+                        {% if review.updated_at and review.updated_at != review.created_at %}
+                        <br><small>已编辑</small>
+                        {% endif %}
+                    </div>
                 </div>
+
+                <!-- Rating Grid -->
+                <div class="rating-grid">
+                    {% if review.rating %}
+                    <div class="rating-item">
+                        <div class="rating-label">综合评分</div>
+                        <div class="rating-value">{{ review.rating }}</div>
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                                {% if i <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if review.learning_gain %}
+                    <div class="rating-item">
+                        <div class="rating-label">课程收获</div>
+                        <div class="rating-value">{{ review.learning_gain }}</div>
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                                {% if i <= review.learning_gain %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if review.workload %}
+                    <div class="rating-item">
+                        <div class="rating-label">繁忙程度</div>
+                        <div class="rating-value">{{ review.workload }}</div>
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                                {% if i <= review.workload %}
+                                    <i class="fas fa-circle"></i>
+                                {% else %}
+                                    <i class="far fa-circle"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if review.difficulty %}
+                    <div class="rating-item">
+                        <div class="rating-label">课程难度</div>
+                        <div class="rating-value">{{ review.difficulty }}</div>
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                                {% if i <= review.difficulty %}
+                                    <i class="fas fa-circle"></i>
+                                {% else %}
+                                    <i class="far fa-circle"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Review Content -->
+                {% if review.content %}
+                <div class="review-content">
+                    <p class="review-text">{{ review.content }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="review-actions mt-3">
+                    <a href="{{ url_for('course_detail', course_id=review.course.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> 查看课程
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="editReview({{ review.id }})">
+                        <i class="fas fa-edit"></i> 编辑
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReview({{ review.id }})">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if pagination.pages > 1 %}
+            <div class="pagination-container">
+                <nav>
+                    <ul class="pagination">
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('auth.profile', page=pagination.prev_num) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != pagination.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('auth.profile', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">…</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('auth.profile', page=pagination.next_num) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
             {% endif %}
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-comment-alt-slash"></i>
+                <h3>还没有评价</h3>
+                <p>您还没有对任何课程进行评价。<br>去浏览课程并分享您的学习体验吧！</p>
+                <a href="{{ url_for('courses_list') }}" class="btn-steam mt-3">
+                    <i class="fas fa-search"></i> 浏览课程
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div class="modal fade" id="editReviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-light">编辑评价</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReviewForm">
+                    <input type="hidden" id="editReviewId">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label text-light">综合评分</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="editRating">
+                                <option value="">未评分</option>
+                                <option value="1">1 - 很差</option>
+                                <option value="2">2 - 较差</option>
+                                <option value="3">3 - 一般</option>
+                                <option value="4">4 - 较好</option>
+                                <option value="5">5 - 很好</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-light">课程收获</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="editLearningGain">
+                                <option value="">未评分</option>
+                                <option value="1">1 - 很少</option>
+                                <option value="2">2 - 较少</option>
+                                <option value="3">3 - 一般</option>
+                                <option value="4">4 - 较多</option>
+                                <option value="5">5 - 很多</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-light">繁忙程度</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="editWorkload">
+                                <option value="">未评分</option>
+                                <option value="1">1 - 很轻松</option>
+                                <option value="2">2 - 较轻松</option>
+                                <option value="3">3 - 一般</option>
+                                <option value="4">4 - 较繁忙</option>
+                                <option value="5">5 - 很繁忙</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-light">课程难度</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="editDifficulty">
+                                <option value="">未评分</option>
+                                <option value="1">1 - 很简单</option>
+                                <option value="2">2 - 较简单</option>
+                                <option value="3">3 - 一般</option>
+                                <option value="4">4 - 较困难</option>
+                                <option value="5">5 - 很困难</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editContent" class="form-label text-light">评价内容</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="editContent" rows="4" 
+                                  placeholder="分享您对这门课程的看法和建议..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveReview()">保存修改</button>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 添加课程卡片点击事件
-    const courseItems = document.querySelectorAll('.course-item');
-    courseItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // 这里可以添加导航到课程详情页的逻辑
-            console.log('点击课程:', this.querySelector('.course-name').textContent);
-        });
-    });
-    
-    // 添加统计数据动画
-    const statNumbers = document.querySelectorAll('.stat-number');
-    statNumbers.forEach(stat => {
-        const finalValue = parseInt(stat.textContent);
-        if (!isNaN(finalValue)) {
-            animateNumber(stat, finalValue);
-        }
-    });
-});
+let currentEditingReview = null;
 
-function animateNumber(element, finalValue) {
-    const duration = 1500;
-    const increment = finalValue / (duration / 16);
-    let currentValue = 0;
-    
-    const timer = setInterval(() => {
-        currentValue += increment;
-        if (currentValue >= finalValue) {
-            element.textContent = finalValue;
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.floor(currentValue);
-        }
-    }, 16);
+function editReview(reviewId) {
+    // 获取评价数据并填充到编辑表单
+    fetch(`/api/v1/reviews/${reviewId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const review = data.data;
+                currentEditingReview = reviewId;
+                
+                document.getElementById('editReviewId').value = reviewId;
+                document.getElementById('editRating').value = review.rating || '';
+                document.getElementById('editLearningGain').value = review.learning_gain || '';
+                document.getElementById('editWorkload').value = review.workload || '';
+                document.getElementById('editDifficulty').value = review.difficulty || '';
+                document.getElementById('editContent').value = review.content || '';
+                
+                const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+                modal.show();
+            } else {
+                alert('获取评价信息失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('获取评价信息失败，请重试');
+        });
 }
+
+function saveReview() {
+    if (!currentEditingReview) return;
+    
+    const formData = {
+        rating: document.getElementById('editRating').value || null,
+        learning_gain: document.getElementById('editLearningGain').value || null,
+        workload: document.getElementById('editWorkload').value || null,
+        difficulty: document.getElementById('editDifficulty').value || null,
+        content: document.getElementById('editContent').value.trim() || null
+    };
+    
+    // 转换字符串为数字
+    ['rating', 'learning_gain', 'workload', 'difficulty'].forEach(field => {
+        if (formData[field] !== null) {
+            formData[field] = parseInt(formData[field]);
+        }
+    });
+    
+    fetch(`/api/v1/reviews/${currentEditingReview}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('评价更新成功！');
+            location.reload(); // 刷新页面显示更新后的内容
+        } else {
+            alert('更新失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新失败，请重试');
+    });
+}
+
+function deleteReview(reviewId) {
+    if (!confirm('确定要删除这条评价吗？此操作不可撤销。')) {
+        return;
+    }
+    
+    fetch(`/api/v1/reviews/${reviewId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('评价删除成功！');
+            location.reload(); // 刷新页面
+        } else {
+            alert('删除失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('删除失败，请重试');
+    });
+}
+
+// 页面加载完成后的初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 可以在这里添加其他初始化代码
+    console.log('Profile page loaded');
+});
 </script>
 {% endblock %}
