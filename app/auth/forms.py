@@ -25,6 +25,13 @@ class RegistrationForm(FlaskForm):
         DataRequired(message='请输入邮箱'),
         Email(message='请输入有效的邮箱地址')
     ])
+    ucd_student_id = StringField(
+        'UCD 学号（可选）',
+        validators=[
+            Optional(),
+            Length(min=7, max=8, message='学号长度需 8 位'),
+        ]
+    )
     password = PasswordField('密码', validators=[
         DataRequired(message='请输入密码'),
         Length(min=6, message='密码长度至少6个字符')

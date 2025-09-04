@@ -6,8 +6,12 @@ BDIC-SE Knowledge Base Portal
 from app import create_app, db
 from app.models import Instructor, Course, User, Review
 import os
+from dotenv import load_dotenv
 
 # 创建Flask应用实例
+# 加载本地环境变量（支持 .env 文件）
+load_dotenv()
+
 app = create_app()
 
 @app.shell_context_processor

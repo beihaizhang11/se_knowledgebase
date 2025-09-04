@@ -42,10 +42,20 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
+        ucd_id = (form.ucd_student_id.data or '').strip() or None
+
+        if ucd_id:
+            exists = User.query.filter_by(ucd_student_id=ucd_id).first()
+            if exists:
+                flash('该 UCD 学号已被其它账号绑定', 'error')
+                return render_template('auth/register.html', form=form)
+
+
         user = User(
             username=form.username.data,
             email=form.email.data,
-            password=form.password.data
+            password=form.password.data,
+            ucd_student_id=ucd_id
         )
         
         try:
