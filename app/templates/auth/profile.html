@@ -230,17 +230,11 @@
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-avatar">
-            {{ user.first_name[0].upper() }}{{ user.last_name[0].upper() }}
+            {{ user.get_initials() }}
         </div>
         <div class="profile-name">{{ user.get_full_name() }}</div>
         <div class="profile-role">
-            {% if user.role == 'student' %}
-                🎓 学生
-            {% elif user.role == 'teacher' %}
-                👨‍🏫 教师
-            {% else %}
-                👑 管理员
-            {% endif %}
+            🎓 用户
         </div>
         <div class="profile-stats">
             <div class="stat-item">
@@ -248,12 +242,12 @@
                 <span class="stat-label">评价数量</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">{{ (user.created_at.now() - user.created_at).days }}</span>
+                <span class="stat-number">{{ ((user.updated_at or user.created_at) - user.created_at).days if user.created_at else 0 }}</span>
                 <span class="stat-label">加入天数</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">{{ user.last_login.strftime('%m-%d') if user.last_login else '从未' }}</span>
-                <span class="stat-label">最后登录</span>
+                <span class="stat-number">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '未知' }}</span>
+                <span class="stat-label">注册日期</span>
             </div>
         </div>
     </div>
@@ -280,21 +274,16 @@
                 <span class="info-value">{{ user.get_full_name() }}</span>
             </div>
             
-            {% if user.student_id %}
+            {% if user.ucd_student_id %}
             <div class="info-item">
-                <span class="info-label">学号</span>
-                <span class="info-value">{{ user.student_id }}</span>
+                <span class="info-label">UCD学号</span>
+                <span class="info-value">{{ user.ucd_student_id }}</span>
             </div>
             {% endif %}
             
             <div class="info-item">
-                <span class="info-label">角色</span>
-                <span class="info-value">
-                    {% if user.role == 'student' %}学生
-                    {% elif user.role == 'teacher' %}教师
-                    {% else %}管理员
-                    {% endif %}
-                </span>
+                <span class="info-label">用户类型</span>
+                <span class="info-value">注册用户</span>
             </div>
             
             <div class="info-item">

@@ -216,6 +216,21 @@
                     </div>
                 {% endif %}
             </div>
+
+            <div class="form-group">
+                {{ form.ucd_student_id.label(class="form-label") }}
+                {{ form.ucd_student_id(class="form-control", placeholder="请输入 UCD 学号（可选）") }}
+                <div class="alert alert-info" style="margin-top:8px;">
+                    可选项：用于在系统内关联你的 UCD 成绩查询，后续可在账号设置中修改或解绑。
+                </div>
+                {% if form.ucd_student_id.errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.ucd_student_id.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
             
 
             

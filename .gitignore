@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+tests/example.spec.ts
+tests/test-1.spec.ts
+tests/test-2.spec.ts
+tests/test-3.spec.ts
+tests/test-4.spec.ts
+tests-examples/demo-todo-app.spec.ts
+app/.DS_Store

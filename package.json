@@ -1,0 +1,22 @@
+{
+  "name": "se_knowledgebase",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beihaizhang11/se_knowledgebase.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/beihaizhang11/se_knowledgebase/issues"
+  },
+  "homepage": "https://github.com/beihaizhang11/se_knowledgebase#readme",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0"
+  }
+}

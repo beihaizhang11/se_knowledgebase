@@ -49,6 +49,10 @@ def create_app(config_name='development'):
     from app.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
     
+    # 注册UCD成绩查询蓝图
+    from app.api.ucd import ucd_bp
+    app.register_blueprint(ucd_bp)
+    
     # 添加Web页面路由
     @app.route('/')
     def index():
@@ -95,6 +99,12 @@ def create_app(config_name='development'):
         query = request.args.get('q', '')
         return render_template('search_results.html', query=query)
     
+    @app.route('/ucd-results')
+    def ucd_results():
+        """UCD成绩查询页面"""
+        from flask import render_template
+        return render_template('ucd_results.html')
+    
 
     
     @app.route('/api/v1/')
@@ -110,7 +120,9 @@ def create_app(config_name='development'):
                 "GET /api/v1/instructors - 获取教师列表", 
                 "GET /api/v1/instructors/<id> - 获取单个教师",
                 "GET /api/v1/users - 获取用户列表",
-                "GET /api/v1/reviews - 获取评论列表"
+                "GET /api/v1/reviews - 获取评论列表",
+                "POST /api/ucd/results - 获取UCD成绩数据",
+                "GET /api/ucd/test - 测试UCD连接"
             ]
         })
     
